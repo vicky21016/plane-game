@@ -1,0 +1,278 @@
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    .game {
+      position: relative;
+      width: 480px;
+      height: 360px;
+
+      .bgi {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-image: url(./images/universe1.png);
+        animation-name: bgiAni;
+        animation-duration: 1s;
+        animation-iteration-count: infinite;
+        animation-timing-function: step-start;
+      }
+
+      .plane {
+        position: absolute;
+        width: 72px;
+        height: 60px;
+        left: 0;
+        right: 0;
+        margin: auto;
+        bottom: 10px;
+        background-image: url(./images/plane1.png);
+      }
+
+      .planeE {
+        position: absolute;
+        left: 0;
+        right: 0;
+        margin: auto;
+        top: 10px;
+        width: 88px;
+        height: 64px;
+        animation-name: enemyAni;
+        animation-duration: 5s;
+        animation-timing-function: linear;
+        animation-iteration-count: 1;
+        animation-fill-mode: forwards;
+      }
+
+      .bullet {
+        position: absolute;
+        width: 24px;
+        height: 25px;
+        left: 0;
+        right: 0;
+        margin: auto;
+        bottom: 10px;
+        animation-name: bulletAni;
+        animation-duration: 1s;
+        animation-timing-function: linear;
+        animation-iteration-count: 1;
+        animation-fill-mode: forwards;
+      }
+      .explosion {
+        position: absolute;
+        left: 0;
+        right: 0;
+        margin: auto;
+        top: 10px;
+        width: 128px;
+        height: 128px;
+        background-image: url(./images//explosion/explo-0.png);
+        animation: explosion 1s step-start 1 forwards;
+      }
+    }
+
+    @keyframes bulletAni{
+      0%{bottom: 10px;}
+      100%{bottom: 340px;}
+    }
+    @keyframes enemyAni{
+      0%{top: 10px;}
+      100%{top: 360px;}
+    }
+
+    @keyframes bgiAni {
+      0% {
+        background-image: url(./images/universe1.png);
+      }
+
+      50% {
+        background-image: url(./images/universe2.png);
+      }
+
+      100% {
+        background-image: url(./images/universe1.png);
+      }
+    }
+
+    @keyframes explosion {
+      0% { background-position: -1px -1px; }
+      6.25% { background-position: -131px -1px; }
+      12.5% { background-position: -261px -1px; }
+      18.75% { background-position: -391px -1px; }
+      25% { background-position: -521px -1px; }
+      31.25% { background-position: -651px -1px; }
+      37.5% { background-position: -781px -1px; }
+      43.75% { background-position: -911px -1px; }
+      50% { background-position: -1041px -1px; }
+      56.25% { background-position: -1171px -1px; }
+      62.5% { background-position: -1301px -1px; }
+      68.75% { background-position: -1431px -1px; }
+      75% { background-position: -1561px -1px; }
+      81.25% { background-position: -1691px -1px; }
+      87.5% { background-position: -1821px -1px; }
+      93.75% { background-position: -1821px -1px; }
+      100% { background-position: -1821px -1px; }
+    }
+  </style>
+  <script src="https://code.jquery.com/jquery-3.7.0.min.js"
+    integrity="sha256-2Pmvv0kuTBOenSvLm6bvfBSSHrUJ+3A7x6P5Ebd07/g=" crossorigin="anonymous"></script>
+  <title>Game1</title>
+</head>
+
+<body>
+  <div class="game">
+    <div class="bgi"></div>
+    <div class="plane"></div>
+  </div>
+  <script>
+    let x = 0;
+    let bn = 0;
+    let en = 0;
+    let explon = 0;
+    let score = 0;
+    let canShoot = true;
+    let keysPressed = {}; // 記錄當前被按下的鍵的物件
+    let planeEtimer;
+    const soundObj = {
+      shoot: "./sounds/shoot.mp3",
+      explo: "./sounds/explo.mp3",
+      bg: "./sounds/music2.mp3",
+    }    
+
+    // keydown 事件用來記錄按下的鍵，並將 keyPressed 物件中的對應鍵碼設為 true
+    $(window).on("keydown", function (e) {
+      keysPressed[e.which] = true;
+    }).on("keyup", function (e) { // keyup 事件用來監聽鍵盤按鍵釋放，並刪除 keyPressed 中對應的鍵碼
+      delete keysPressed[e.which];
+    });
+
+    gameLoop();
+    setEnemy();
+    backgroundSound(soundObj.bg)
+    planeEtimer = setInterval(setEnemy, 1000) // 設定 1 秒鐘執行一次 setEnemy，產生一架敵機，並把這個計時器計載在變數 planeEtimer，這樣就可以針對這個變數去停止計時器
+
+
+    function gameLoop() {
+      if (keysPressed[39]) {
+        x += 10;
+        if (x >= 410) {
+          x = 410;
+        }
+        $(".plane").css("left", `${x}px`);
+      }
+      if (keysPressed[37]) {
+        x -= 10;
+        if (x <= -410) {
+          x = -410;
+        }
+        $(".plane").css("left", `${x}px`);
+      }
+      if (keysPressed[32]) {
+        if (canShoot === true) {
+          canShoot = false;
+          bn++;
+          let bt = `
+            <div class="bullet bullet${bn}">
+              <img src="./images/bullet1.png" alt="">
+            </div>`;
+          $(".game").append(bt);
+          playSound(soundObj.shoot)
+          $(".game .bullet" + bn).css("left", x + "px");
+
+          setTimeout(() => {
+            canShoot = true;
+          }, 120) // 120 控制子彈發射頻率
+        }
+      }
+      $(".bullet").each((index, elm)=>{
+        let $bullet = $(elm);
+        $(".planeE").each(function(index, elm) {
+          let $enemy = $(elm);
+          if (isOverLap($bullet, $enemy)) {
+            let exx = $(this).css("left");
+            let exy = $(this).css("top");
+            $bullet.remove();
+            $enemy.remove();
+            explon++;
+            $(".game").append(`<div class="explosion explosion${explon}"></div>`);
+            playSound(soundObj.explo)
+            $(".explosion"+explon).css("left", exx);
+            $(".explosion"+explon).css("top", exy);
+            $(".explosion"+explon).on("animationend", function(){
+              $(this).remove();
+            })
+            score++;
+          }
+        });
+      });
+      requestAnimationFrame(gameLoop); // 這是遊戲的主要循環函數，利用 requestAnimationFrame() 來持續刷新畫面，檢查玩家的鍵盤輸入並移動飛機。
+    }
+
+    $(".game").on("animationend",(e)=>{
+      if($(e.target).hasClass("planeE") || $(e.target).hasClass("bullet")){
+        $(e.target).remove();
+      }
+    });
+
+    // 產生敵機的函數
+    function setEnemy() {
+      // 敵機如果要不重疊向下飛出，就要產生在「跑道」上
+      let posi = (Math.floor(Math.random() * 4) - 2) * 180; // 產生敵機第一件事，亂數 0 ~ 4，決定要在哪個跑道上。再扣除 2，變成亂數 -2 ~ 0 ~ 2，再以敵機圖片寬，得到敵機的 x 座標
+      en++;
+      // 宣告變數 enemy 是一個字串模版，內容是一個有 class planeE 和流水編號 enemyN 的 div，裡面是 img 標籤放敵機圖片
+      let enemy = `
+        <div id="enemy${en}" class="planeE enemy${en}">
+          <img src="./images/plane2.png" alt="">
+        </div>`;
+      $(".game").append(enemy);
+      $(".game .enemy" + en).css("left", posi + "px");
+    }
+
+    // 檢查子彈和敵機是否重疊，若重疊則觸發爆炸效果並增加分數
+    function isOverLap($div1, $div2){
+      let x1 = $div1.offset().left;
+      let y1 = $div1.offset().top;
+      let w1 = $div1.outerWidth();
+      let h1 = $div1.outerHeight();
+
+      let x2 = $div2.offset().left;
+      let y2 = $div2.offset().top;
+      let w2 = $div2.outerWidth();
+      let h2 = $div2.outerHeight();
+
+      if (x1 < x2 + w2 &&
+          x1 + w1 > x2 &&
+          y1 < y2 + h2 &&
+          y1 + h1 > y2) {
+          return true;
+      } else {
+        return false;
+      }
+    }
+
+    // 播放射擊和爆炸的聲音效果
+    function playSound(url){
+      let sound = new Audio(url);
+      sound.addEventListener("ended", e => {
+        e.target = null;
+      })
+      sound.play();
+    }
+
+    // 播放背景音樂並設置為循環播放
+    function backgroundSound(url){
+      let sound = new Audio(url);
+      sound.loop = true;
+      sound.volume = 0.2;
+      sound.play();
+    }
+  </script>
+</body>
+
+</html>
