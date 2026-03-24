@@ -155,7 +155,7 @@
     gameLoop();
     setEnemy();
     backgroundSound(soundObj.bg)
-    planeEtimer = setInterval(setEnemy, 1000) // 設定 1 秒鐘執行一次 setEnemy，產生一架敵機，並把這個計時器計載在變數 planeEtimer，這樣就可以針對這個變數去停止計時器
+    planeEtimer = setInterval(setEnemy, 1000)
 
 
     function gameLoop() {
@@ -214,6 +214,7 @@
       requestAnimationFrame(gameLoop); // 這是遊戲的主要循環函數，利用 requestAnimationFrame() 來持續刷新畫面，檢查玩家的鍵盤輸入並移動飛機。
     }
 
+    // 當動畫跑完（飛出螢幕）時，把 DOM 元素刪掉
     $(".game").on("animationend",(e)=>{
       if($(e.target).hasClass("planeE") || $(e.target).hasClass("bullet")){
         $(e.target).remove();
@@ -222,10 +223,10 @@
 
     // 產生敵機的函數
     function setEnemy() {
-      // 敵機如果要不重疊向下飛出，就要產生在「跑道」上
-      let posi = (Math.floor(Math.random() * 4) - 2) * 180; // 產生敵機第一件事，亂數 0 ~ 4，決定要在哪個跑道上。再扣除 2，變成亂數 -2 ~ 0 ~ 2，再以敵機圖片寬，得到敵機的 x 座標
+      // 敵機不重疊向下飛出
+      let posi = (Math.floor(Math.random() * 4) - 2) * 180; //亂數 -2 ~ 0 ~ 2
       en++;
-      // 宣告變數 enemy 是一個字串模版，內容是一個有 class planeE 和流水編號 enemyN 的 div，裡面是 img 標籤放敵機圖片
+      // 宣告變數 enemy 放敵機圖片
       let enemy = `
         <div id="enemy${en}" class="planeE enemy${en}">
           <img src="./images/plane2.png" alt="">
